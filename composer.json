@@ -56,7 +56,10 @@
         }
     },
     "config": {
-        "process-timeout": 3000
+        "process-timeout": 3000,
+        "platform": {
+            "php": "5.6"
+        }
     },
     "extra": {
         "_ci_branch-comment_": "Keep ci branch up-to-date with master or branch if on stable. ci is never on github but convention used for ci behat testing!",
