@@ -25,7 +25,12 @@ class SectionHandler extends AbstractHandler implements SectionHandlerInterface
     {
         $this->logger->logCall(__METHOD__, array('name' => $name, 'identifier' => $identifier));
         $section = $this->persistenceHandler->sectionHandler()->create($name, $identifier);
-        $this->cache->getItem('section', $section->id)->set($section)->save();
+
+        $this->cache->save(
+            $this->cache->getItem('ez-section-'.$section->id)
+                ->set($section)
+                ->tag('section-'.$section->id)
+        );
 
         return $section;
     }
@@ -36,10 +41,9 @@ class SectionHandler extends AbstractHandler implements SectionHandlerInterface
     public function update($id, $name, $identifier)
     {
         $this->logger->logCall(__METHOD__, array('section' => $id, 'name' => $name, 'identifier' => $identifier));
-        $this->cache
-            ->getItem('section', $id)
-            ->set($section = $this->persistenceHandler->sectionHandler()->update($id, $name, $identifier))
-            ->save();
+        $section = $this->persistenceHandler->sectionHandler()->update($id, $name, $identifier);
+
+        $this->cache->invalidateTags(['section-'.$id]);
 
         return $section;
     }
@@ -49,12 +53,17 @@ class SectionHandler extends AbstractHandler implements SectionHandlerInterface
      */
     public function load($id)
     {
-        $cache = $this->cache->getItem('section', $id);
-        $section = $cache->get();
-        if ($cache->isMiss()) {
-            $this->logger->logCall(__METHOD__, array('section' => $id));
-            $cache->set($section = $this->persistenceHandler->sectionHandler()->load($id))->save();
+        $cacheItem = $this->cache->getItem('ez-section-'.$id);
+        if ($cacheItem->isHit()) {
+            return $cacheItem->get();
         }
+
+        $this->logger->logCall(__METHOD__, array('section' => $id));
+        $section = $this->persistenceHandler->sectionHandler()->load($id);
+
+        $cacheItem->set($section);
+        $cacheItem->tag(['section-'.$section->id]);
+        $this->cache->save($cacheItem);
 
         return $section;
     }
@@ -82,9 +91,19 @@ class SectionHandler extends AbstractHandler implements SectionHandlerInterface
      */
     public function loadByIdentifier($identifier)
     {
-        $this->logger->logCall(__METHOD__, array('section' => $identifier));
+        $cacheItem = $this->cache->getItem('ez-section-identifier-'.$identifier);
+        if ($cacheItem->isHit()) {
+            return $cacheItem->get();
+        }
 
-        return $this->persistenceHandler->sectionHandler()->loadByIdentifier($identifier);
+        $this->logger->logCall(__METHOD__, array('section' => $identifier));
+        $section = $this->persistenceHandler->sectionHandler()->loadByIdentifier($identifier);
+
+        $cacheItem->set($section);
+        $cacheItem->tag(['section-'.$section->id]);
+        $this->cache->save($cacheItem);
+
+        return $section;
     }
 
     /**
@@ -95,7 +114,7 @@ class SectionHandler extends AbstractHandler implements SectionHandlerInterface
         $this->logger->logCall(__METHOD__, array('section' => $id));
         $return = $this->persistenceHandler->sectionHandler()->delete($id);
 
-        $this->cache->clear('section', $id);
+        $this->cache->invalidateTags(['section-'.$id]);
 
         return $return;
     }
@@ -108,9 +127,7 @@ class SectionHandler extends AbstractHandler implements SectionHandlerInterface
         $this->logger->logCall(__METHOD__, array('section' => $sectionId, 'content' => $contentId));
         $return = $this->persistenceHandler->sectionHandler()->assign($sectionId, $contentId);
 
-        $this->cache->clear('content', $contentId);
-        $this->cache->clear('content', 'info', $contentId);
-        $this->cache->clear('content', 'info', 'remoteId');
+        $this->cache->invalidateTags(['content-'.$contentId]);
 
         return $return;
     }

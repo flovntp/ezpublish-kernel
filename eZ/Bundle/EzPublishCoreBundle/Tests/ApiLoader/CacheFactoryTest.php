@@ -49,7 +49,7 @@ class CacheFactoryTest extends \PHPUnit_Framework_TestCase
         $this->configResolver
             ->expects($this->once())
             ->method('getParameter')
-            ->with('cache_pool_name')
+            ->with('cache_service_name')
             ->will($this->returnValue($name));
 
         $this->container

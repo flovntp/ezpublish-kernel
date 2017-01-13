@@ -64,15 +64,7 @@ abstract class HandlerTest extends PHPUnit_Framework_TestCase
         parent::setUp();
 
         $this->persistenceHandlerMock = $this->getMock('eZ\Publish\SPI\Persistence\Handler');
-
-        $this->cacheMock = $this->getMock(
-            'eZ\\Publish\\Core\\Persistence\\Cache\\CacheServiceDecorator',
-            array(),
-            array(),
-            '',
-            false
-        );
-
+        $this->cacheMock = $this->getMock('Symfony\\Component\\Cache\\Adapter\\TagAwareAdapterInterface');
         $this->loggerMock = $this->getMock('eZ\\Publish\\Core\\Persistence\\Cache\\PersistenceLogger');
 
         $this->persistenceCacheHandler = new CacheHandler(
