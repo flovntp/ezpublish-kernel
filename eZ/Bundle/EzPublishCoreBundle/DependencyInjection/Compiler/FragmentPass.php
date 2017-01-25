@@ -32,7 +32,7 @@ class FragmentPass implements CompilerPassInterface
         $fragmentListenerDef = $container->findDefinition('fragment.listener');
         $fragmentListenerDef
             ->setFactory([new Reference('ezpublish.fragment_listener.factory'), 'buildFragmentListener'])
-            ->addArgument('%fragment.listener.class%');
+            ->addArgument('Symfony\Component\HttpKernel\EventListener\FragmentListener');
 
         // Looping over all fragment renderers to decorate them
         // This is to make sure they are siteaccess aware (siteaccess is serialized in rendered path).
