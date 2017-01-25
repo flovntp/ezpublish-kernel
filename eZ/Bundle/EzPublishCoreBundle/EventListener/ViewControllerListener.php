@@ -81,8 +81,12 @@ class ViewControllerListener implements EventSubscriberInterface
         {
             if ( $request->attributes->has( 'locationId' ) )
             {
-                $valueObject = $this->repository->getLocationService()->loadLocation(
-                    $request->attributes->get( 'locationId' )
+                $valueObject = $this->repository->sudo(
+                    function ($repository) use ($request) {
+                        return $repository->getLocationService()->loadLocation(
+                            $request->attributes->get('locationId')
+                        );
+                    }
                 );
             }
             else if ( $request->attributes->get( 'location' ) instanceof Location )
